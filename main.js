@@ -28,15 +28,14 @@ class Findings {
             method: 'GET'
         })
             .then(response => response.json())
-            .then(data => {console.log(data)
+            .then(data => {console.log(data); 
                 Findings.renderLineWhenRestart(data)})
     }
     static renderLineWhenRestart(data){
         for (let key in data) {
-            CreateBlockLayout()
+            CreateBlockLayout(key)
             renderLine(data[key])
         }
-        
     }
 }
 function renderLine(dataArray){
@@ -47,6 +46,7 @@ function renderLine(dataArray){
     const arrLastFields = addField.slice(-6)
     const arrLastStars = stars.slice(-5)
     countLine.innerHTML = lineLength
+   
     arrLastFields.forEach(item => {
         const attr = item.getAttribute('data-name')
         dataArray.forEach(el => {
@@ -58,20 +58,21 @@ function renderLine(dataArray){
             }
         })
     })
-    const middleRating = [...document.querySelectorAll('.form__count')]
-    const [...lastMiddleRating] = (middleRating[middleRating.length-1]).innerHTML
+    const averageRating = [...document.querySelectorAll('.form__count')]
+    const [...lastaverageRating] = (averageRating[averageRating.length-1]).innerHTML
     arrLastStars.forEach((star, i) => {
-        if (i < lastMiddleRating){
+        if (i < lastaverageRating){
             star.classList.add('select')
         }
     })
 }
 
 //создание разметки страницы
-function CreateBlockLayout(){
+function CreateBlockLayout(key){
     let hero = document.querySelector('.hero__inner')
     let divLine = document.createElement('div');
     divLine.className = "hero__line line"
+    divLine.setAttribute('id', key)
     divLine.innerHTML =
     `
     <div class="line__applicant">
@@ -162,11 +163,17 @@ addButton.addEventListener('click', function () {
 cancel.addEventListener('click', function () {
     overlay.classList.remove('visible')
     overlay.classList.add('hidden')
+    inputFile.value = ''
+    inputFileName.innerHTML = ''
+    input.forEach(input => {
+        input.value = ''
+    })
+    selectedOption.options[0].selected = true
 })
 submitBtn.addEventListener('click', function () {
     
     input.forEach(input => {
-        const valid = input.closest('.input-block__label').querySelector('.input-block__valid')
+        const valid = input.closest('.input-block').querySelector('.input-block__valid')
         valid.classList.remove('visible')
         valid.classList.remove('hidden')
         if (input.value === ''){
@@ -179,11 +186,19 @@ submitBtn.addEventListener('click', function () {
         }
     })
 })
-
+let changeValidText = function (input) {
+    const valid = input.closest('.input-block').querySelector('.input-block__valid')
+    valid.classList.remove('visible')
+    valid.classList.remove('hidden')
+}
+input.forEach(input => {
+    input.addEventListener('focus', () => changeValidText(input))
+})
+inputFile.addEventListener('change', () => changeValidText(inputFile))
 form.addEventListener('submit', submitFormHandler)
 function submitFormHandler(e) {
     e.preventDefault()
-    let middleRating = Math.round((parseInt(resumeCount.innerHTML) + parseInt(testCount.innerHTML) + parseInt(interviewCount.innerHTML)) / 3)
+    let averageRating = Math.round((parseInt(resumeCount.innerHTML) + parseInt(testCount.innerHTML) + parseInt(interviewCount.innerHTML)) / 3)
     
     function readFile(file, callback){ //кодируем изображение, т.к. используемый сервер принимает только json
         let reader = new FileReader();
@@ -191,7 +206,7 @@ function submitFormHandler(e) {
         reader.readAsDataURL(file);
     }
     let arrFindings=[]
-    arrFindings.push({'name': 'count','value': middleRating})
+    arrFindings.push({'name': 'count','value': averageRating})
 
     readFile(inputFile.files[0], function(e) {    
         input.forEach(input => {
@@ -274,5 +289,4 @@ function getRatingStar(starsArray, count){
 getRatingStar(resumeStar, resumeCount);
 getRatingStar(testStar, testCount);
 getRatingStar(interviewStar, interviewCount);
-
-
+    
